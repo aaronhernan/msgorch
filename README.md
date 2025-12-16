@@ -14,6 +14,9 @@ cd msgorg
 cargo add axum
 cargo add tokio --features full
 cargo add serde_json
+cargo add serde --features derive
+cargo add tracing
+cargo add tracing-subscriber --features fmt
 ```
 
 ## Verison a produccion
