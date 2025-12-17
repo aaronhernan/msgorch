@@ -6,6 +6,7 @@ pub struct Config {
     pub evolution_api_key: String,
     pub listen_host: String,
     pub listen_port: u16,
+    pub webhook_token: String,
 }
 
 impl Config {
@@ -26,11 +27,16 @@ impl Config {
                 .unwrap_or_else(|_| "3001".to_string())
                 .parse::<u16>()
                 .expect("LISTEN_PORT debe ser un número");
+        let webhook_token =
+            env::var("WEBHOOK_TOKEN")
+            .expect("WEBHOOK_TOKEN no está definido");
+
         Self {
             evolution_base_url,
             evolution_api_key,
             listen_host,
             listen_port,
+            webhook_token,
         }
     }
 }

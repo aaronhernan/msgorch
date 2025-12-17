@@ -3,6 +3,7 @@ mod handlers;
 mod models;
 mod config;
 mod services;
+mod middleware;
 
 use config::Config;
 

@@ -43,10 +43,18 @@ pub async fn webhook_handler(
         evolution_url = %config.evolution_base_url,
         "Mensaje entrante"
     );
+    
 
-    if let Err(err) = evolution.send_message(&jid, "Mensaje recibido").await {
-        error!("Error enviando mensaje: {}", err);
-    }
+    // Background task to send the reply
+    let evolution = evolution.clone();
+    tokio::spawn(async move {
+        if let Err(err) = evolution.send_message(&jid, "Mensaje recibido").await {
+            error!("Error enviando mensaje: {}", err);
+        }
+    });
+
+    // Terminamos execución del handler, y respondemos 200 OK inmediatamente
+    
     // let mut file = OpenOptions::new()
     //     .create(true)
     //     .append(true)
