@@ -17,6 +17,8 @@ cargo add serde_json
 cargo add serde --features derive
 cargo add tracing
 cargo add tracing-subscriber --features fmt
+cargo add dotenvy
+cargo add reqwest --features json
 ```
 
 ## Verison a produccion

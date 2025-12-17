@@ -5,17 +5,24 @@ use axum::{
 use tokio::net::TcpListener;
 use tracing::info;
 
-use crate::handlers::webhook::webhook_handler;
+use crate::{
+    handlers::webhook::webhook_handler,
+    services::evolution::EvolutionService,
+    config::Config,
+};
 
-pub async fn run() {
+pub async fn run(config: Config) {
+    let evolution = EvolutionService::new(&config);
+    let addr = format!("{}:{}", config.listen_host, config.listen_port);
     let app = Router::new()
-        .route("/webhook", post(webhook_handler));
+        .route("/webhook", post(webhook_handler))
+        .with_state(config, evolution); // Estado global, servicio
 
-    let listener = TcpListener::bind("127.0.0.1:3001")
+    let listener = TcpListener::bind(&addr)
         .await
         .expect("No se pudo abrir el puerto");
 
-    info!("Escuchando en http://127.0.0.1:3001");
+    info!("Escuchando en http://{}", addr);
 
     axum::serve(listener, app)
         .await

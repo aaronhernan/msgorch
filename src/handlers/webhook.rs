@@ -1,13 +1,20 @@
-use axum::extract::Json;
-use std::fs::OpenOptions;
-use std::io::Write;
-use tracing::{info, warn};
+use axum::extract::{Json, State};
+use tracing::{info, warn, error};
+// use std::fs::OpenOptions;
+// use std::io::Write;
 
-use crate::models::evolution::WebhookEvent;
+use crate::{
+    models::evolution::WebhookEvent,
+    services::evolution::EvolutionService,
+    config::Config,
+};
 
-pub async fn webhook_handler(Json(payload): Json<WebhookEvent>) {
+pub async fn webhook_handler(
+    State((config, evolution)): State<(Config, EvolutionService)>,
+    Json(payload): Json<WebhookEvent>
+) {
     if payload.event != "MESSAGES_UPSERT" {
-        warn!("Evento ignorado: {}", payload.event);
+        warn!("Evento ignorado: {}", payload.event);    
         return;
     }
 
@@ -30,13 +37,20 @@ pub async fn webhook_handler(Json(payload): Json<WebhookEvent>) {
 
     let jid = payload.data.key.remote_jid;
 
-    info!(jid = %jid, text = %text, "Mensaje entrante");
+    info!(
+        jid = %jid,
+        text = %text,
+        evolution_url = %config.evolution_base_url,
+        "Mensaje entrante"
+    );
 
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("messages.log")
-        .expect("No se pudo abrir messages.log");
-
-    writeln!(file, "{} | {}", jid, text).unwrap();
+    if let Err(err) = evolution.send_message(&jid, "Mensaje recibido").await {
+        error!("Error enviando mensaje: {}", err);
+    }
+    // let mut file = OpenOptions::new()
+    //     .create(true)
+    //     .append(true)
+    //     .open("messages.log")
+    //     .expect("No se pudo abrir messages.log");
+    // writeln!(file, "{} | {}", jid, text).unwrap();
 }
