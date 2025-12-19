@@ -1,49 +1,43 @@
-use axum::{
-    routing::post,
-    Router,
-    middleware,
-};
+use axum::Router;
 use tokio::net::TcpListener;
 use tracing::info;
 
 use crate::{
-    handlers::webhook::webhook_handler,
-    services::evolution::EvolutionService,
     config::Config,
+    handlers,
+    middleware,
+    services::evolution::EvolutionService,
 };
 
-pub async fn run(config: Config) {
-    let evolution = EvolutionService::new(&config);
-    let addr = format!("{}:{}", config.listen_host, config.listen_port);
-    let state = (config.clone(), evolution);
-    let app = Router::new()
+pub type AppState = (Config, EvolutionService);
+
+pub fn build_router(state: AppState) -> Router {
+    Router::new()
         .route(
             "/webhook",
-            post(webhook_handler)
-                .route_layer(middleware::from_fn_with_state(
-                    state.clone(),
-                    crate::middleware::webhook_auth,
-                )),
+            axum::routing::post(handlers::webhook::webhook_handler),
         )
-        .with_state(state);
-    // let app = Router::new()
-    //     .route("/webhook", 
-    //         post(webhook_handler).route_layer(
-    //             middleware::from_fn_with_state(
-    //                 config.clone(),
-    //                 crate::middleware::webhook_auth,
-    //             )
-    //         ),
-    //     )
-    //     .with_state((config.clone(), evolution)); // Estado global, servicio
+        .route_layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            middleware::webhook_auth,
+        ))
+        .with_state(state)
+}
 
-    let listener = TcpListener::bind(&addr)
-        .await
-        .expect("No se pudo abrir el puerto");
+pub async fn run(config: Config) -> Result<(), std::io::Error> {
+    let addr = format!("{}:{}", config.listen_host, config.listen_port);
+    let listener = TcpListener::bind(addr).await?;
+    info!("Escuchando en http://{}", listener.local_addr()?);
+    run_with_listener(listener, config).await
+}
 
-    info!("Escuchando en http://{}", addr);
+pub async fn run_with_listener(
+    listener: TcpListener,
+    config: Config,
+) -> Result<(), std::io::Error> {
+    let evolution = EvolutionService::new(&config);
+    let state = (config, evolution);
 
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    let app = build_router(state);
+    axum::serve(listener, app).await
 }

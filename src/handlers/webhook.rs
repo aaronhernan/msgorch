@@ -1,4 +1,4 @@
-use axum::extract::{Json, State};
+use axum::{extract::State, http::StatusCode, Json};
 use tracing::{info, warn, error};
 // use std::fs::OpenOptions;
 // use std::io::Write;
@@ -10,17 +10,17 @@ use crate::{
 };
 
 pub async fn webhook_handler(
-    State((config, evolution)): State<(Config, EvolutionService)>,
+    State((_config, evolution)): State<(Config, EvolutionService)>,
     Json(payload): Json<WebhookEvent>
-) {
+) -> StatusCode {
     if payload.event != "MESSAGES_UPSERT" {
         warn!("Evento ignorado: {}", payload.event);    
-        return;
+        return StatusCode::OK;
     }
 
     if payload.data.key.from_me {
         warn!("Mensaje propio ignorado");
-        return;
+        return StatusCode::OK;
     }
 
     let text = match payload
@@ -31,16 +31,19 @@ pub async fn webhook_handler(
         Some(t) => t,
         None => {
             warn!("Mensaje sin texto");
-            return;
+            return StatusCode::BAD_REQUEST;
         }
     };
+
+    // Tambien podemos extraer el texo...
+    // let Some(text) = payload.data.message.conversation.as_deref()
 
     let jid = payload.data.key.remote_jid;
 
     info!(
         jid = %jid,
         text = %text,
-        evolution_url = %config.evolution_base_url,
+        //evolution_url = %config.evolution_base_url,
         "Mensaje entrante"
     );
     
@@ -53,12 +56,12 @@ pub async fn webhook_handler(
         }
     });
 
-    // Terminamos execución del handler, y respondemos 200 OK inmediatamente
-    
+    // Terminamos execución del handler, y respondemos 200 OK inmediatamente    
     // let mut file = OpenOptions::new()
     //     .create(true)
     //     .append(true)
     //     .open("messages.log")
     //     .expect("No se pudo abrir messages.log");
     // writeln!(file, "{} | {}", jid, text).unwrap();
+    StatusCode::OK
 }
