@@ -1,4 +1,4 @@
-/**
+/*
  * Servicio para interactuar con la API de Evolution.
  *   Aqui se implementan las llamadas HTTP necesarias para enviar mensajes.
  * 
@@ -7,8 +7,8 @@
 
 use reqwest::Client;
 use serde::Serialize;
-use tokio::time::{sleep, Duration};
-use tracing::{warn, error};
+use tokio::time::{Duration};
+//use tracing::{warn, error};
 
 use crate::config::Config;
 //use std::time::Duration;
@@ -35,7 +35,7 @@ impl EvolutionService {
     }
 
     pub async fn send_message(&self, jid: &str, text: &str, ) -> Result<(), reqwest::Error> {
-        let url = format!("{}/message/sendText", self.base_url);
+        let url = format!("{}/message/sendText/servicewa", self.base_url);
 
         let body = SendTextRequest {
             number: jid,

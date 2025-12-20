@@ -1,34 +1,61 @@
 use axum::{
-    extract::State,
-    http::{Request, StatusCode},
+    http::{Request, StatusCode, header},
     middleware::Next,
     response::Response,
-    body::Body,
+    extract::State,
 };
 use tracing::warn;
 
 use crate::{
-    config::Config,
-    services::evolution::EvolutionService,
+    app::AppState,
 };
 
 pub async fn webhook_auth(
-    State((config, _evolution)): State<(Config, EvolutionService)>,
-    req: Request<Body>,
+    State(state): State<AppState>,
+    req: Request<axum::body::Body>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let token = req
+    let auth_header = req
         .headers()
-        .get("x-webhook-token")
+        .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok());
 
-    match token {
-        Some(t) if t == config.webhook_token => {
-            Ok(next.run(req).await)
+    tracing::info!("Headers: {:?}", req.headers());
+
+    match auth_header {
+        Some(value) => {
+            // Esperamos: "Bearer TOKEN"
+            if let Some(token) = value.strip_prefix("Bearer ") {
+                    // Comentario de aprendizaje: 
+                    // La utilizacion de state, la hacemos mediante la refencia al state y no clonamos nada.
+                    // Esto lo hacemos por que el codigo es local y no se mueve a otro hilo, y no hay escape del lifetime.
+                if token == &state.config.webhook_token {
+                    return Ok(next.run(req).await);
+                }
+            }
+
+            warn!("Token inválido recibido en webhook");
+            Err(StatusCode::UNAUTHORIZED)
         }
-        _ => {
-            warn!("Webhook rechazado por token inválido");
+
+        None => {
+            warn!("Webhook sin header Authorization");
             Err(StatusCode::UNAUTHORIZED)
         }
     }
+
 }
+
+// pub async fn webhook_auth_debug(
+//     State(state): State<AppState>,
+//     req: Request<axum::body::Body>,
+//     next: Next,
+// ) -> Result<Response, StatusCode> {
+//     let auth_header = req
+//         .headers()
+//         .get(header::AUTHORIZATION)
+//         .and_then(|v| v.to_str().ok());
+
+//     tracing::info!("Headers: {:?}", req.headers());
+//     return Ok(next.run(req).await);    
+// }

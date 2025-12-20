@@ -1,0 +1,121 @@
+{
+    "event": "messages.upsert",
+    "instance": "servicewa",
+    "data": {
+        "key": {
+            "remoteJid": "5216622001169@s.whatsapp.net",
+            "remoteJidAlt": "176158201110710@lid",
+            "fromMe": false,
+            "id": "3EB037DD021BE8E457D32B",
+            "participant": "",
+            "addressingMode": "pn"
+        },
+        "pushName": "Yo",
+        "status": "DELIVERY_ACK",
+        "message": {
+            "messageContextInfo": {
+                "threadId": [],
+                "deviceListMetadata": {
+                    "senderKeyIndexes": [],
+                    "recipientKeyIndexes": [],
+                    "senderKeyHash": {
+                        "0": 238,
+                        "1": 213,
+                        "2": 109,
+                        "3": 118,
+                        "4": 56,
+                        "5": 89,
+                        "6": 150,
+                        "7": 233,
+                        "8": 87,
+                        "9": 57
+                    },
+                    "senderTimestamp": {
+                        "low": 1765589031,
+                        "high": 0,
+                        "unsigned": true
+                    },
+                    "senderAccountType": 0,
+                    "receiverAccountType": 0,
+                    "recipientKeyHash": {
+                        "0": 192,
+                        "1": 133,
+                        "2": 206,
+                        "3": 237,
+                        "4": 216,
+                        "5": 167,
+                        "6": 227,
+                        "7": 203,
+                        "8": 176,
+                        "9": 122
+                    },
+                    "recipientTimestamp": {
+                        "low": 1765873145,
+                        "high": 0,
+                        "unsigned": true
+                    }
+                },
+                "deviceListMetadataVersion": 2,
+                "messageSecret": {
+                    "0": 225,
+                    "1": 21,
+                    "2": 36,
+                    "3": 179,
+                    "4": 90,
+                    "5": 45,
+                    "6": 159,
+                    "7": 188,
+                    "8": 131,
+                    "9": 142,
+                    "10": 161,
+                    "11": 231,
+                    "12": 194,
+                    "13": 9,
+                    "14": 159,
+                    "15": 107,
+                    "16": 113,
+                    "17": 37,
+                    "18": 64,
+                    "19": 58,
+                    "20": 248,
+                    "21": 118,
+                    "22": 212,
+                    "23": 202,
+                    "24": 9,
+                    "25": 41,
+                    "26": 63,
+                    "27": 195,
+                    "28": 146,
+                    "29": 249,
+                    "30": 78,
+                    "31": 94
+                }
+            },
+            "conversation": "holis de nuevo"
+        },
+        "contextInfo": {
+            "mentionedJid": [],
+            "groupMentions": [],
+            "statusAttributions": [],
+            "ephemeralSettingTimestamp": {
+                "low": 1765701123,
+                "high": 0,
+                "unsigned": false
+            },
+            "disappearingMode": {
+                "initiator": 0,
+                "trigger": 1,
+                "initiatedByMe": false
+            }
+        },
+        "messageType": "conversation",
+        "messageTimestamp": 1766225779,
+        "instanceId": "484f2677-cb3f-46fa-b67f-177a9bbb51fd",
+        "source": "web"
+    },
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2025-12-20T07:16:19.750Z",
+    "sender": "5216321123877@s.whatsapp.net",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}

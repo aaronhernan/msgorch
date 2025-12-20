@@ -1,60 +1,90 @@
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{
+    extract::State, 
+    http::StatusCode, 
+    Json, 
+    // body::Bytes,
+};
 use tracing::{info, warn, error};
-// use std::fs::OpenOptions;
-// use std::io::Write;
+
 
 use crate::{
-    models::evolution::WebhookEvent,
-    services::evolution::EvolutionService,
-    config::Config,
+    app::AppState, 
+    models::webhook::WebhookEnvelope,
 };
 
+
 pub async fn webhook_handler(
-    State((_config, evolution)): State<(Config, EvolutionService)>,
-    Json(payload): Json<WebhookEvent>
+    State(state): State<AppState>,
+    Json(payload): Json<WebhookEnvelope>
 ) -> StatusCode {
-    if payload.event != "MESSAGES_UPSERT" {
-        warn!("Evento ignorado: {}", payload.event);    
+    if payload.event != "messages.upsert" {
+        warn!("Evento ignorado: {}", payload.event);
         return StatusCode::OK;
     }
 
-    if payload.data.key.from_me {
-        warn!("Mensaje propio ignorado");
-        return StatusCode::OK;
-    }
-
-    let text = match payload
+    let Some(message_id) = payload
         .data
-        .message
-        .and_then(|m| m.conversation)
-    {
-        Some(t) => t,
-        None => {
-            warn!("Mensaje sin texto");
-            return StatusCode::BAD_REQUEST;
-        }
+        .get("key")
+        .and_then(|k| k.get("id"))
+        .and_then(|id| id.as_str())
+    else {
+        return StatusCode::OK;
     };
 
+    match state.idempotency.check_and_mark(message_id).await {
+        Ok(false) => {
+            info!("Mensaje duplicado ignorado: {}", message_id);
+            return StatusCode::OK;
+        }
+        Ok(true) => {
+            info!("Mensaje nuevo procesado: {}", message_id);
+        }
+        Err(err) => {
+            error!("Error en idempotencia: {}", err);
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    }
     // Tambien podemos extraer el texo...
     // let Some(text) = payload.data.message.conversation.as_deref()
 
-    let jid = payload.data.key.remote_jid;
+    // Enviar la respuesta en background, para no bloquear el handler
+    // Clonamos el servicio desde el estado, para que tokio utilice una referencia estatica
+    let Some(jid) = payload
+        .data
+        .get("key")
+        .and_then(|k| k.get("remoteJid"))
+        .and_then(|remote_jid| remote_jid.as_str())
+        .map(|s| s.to_string())
+    else {
+        error!("No se pudo extraer el JID del mensaje");
+        return StatusCode::OK;
+    };
 
-    info!(
-        jid = %jid,
-        text = %text,
-        //evolution_url = %config.evolution_base_url,
-        "Mensaje entrante"
-    );
-    
-
-    // Background task to send the reply
-    let evolution = evolution.clone();
+    let evolution = state.evolution.clone();
     tokio::spawn(async move {
-        if let Err(err) = evolution.send_message(&jid, "Mensaje recibido").await {
+        if let Err(err) = evolution
+            .send_message(&jid, "Mensaje recibido")
+            .await
+        {
             error!("Error enviando mensaje: {}", err);
         }
     });
+    
+    if let Some(text) = payload
+        .data
+        .get("message")
+        .and_then(|m| m.get("conversation"))
+    {
+        //info!("Texto: {}", text);
+        info!(
+            //jid = %jid,
+            //text = %payload.data.message.conversation.as_deref().unwrap_or("N/A"),
+            texto = %text,
+            //evolution_url = %config.evolution_base_url,
+            "Mensaje entrante"
+        );
+    }
+
 
     // Terminamos execución del handler, y respondemos 200 OK inmediatamente    
     // let mut file = OpenOptions::new()
@@ -65,3 +95,22 @@ pub async fn webhook_handler(
     // writeln!(file, "{} | {}", jid, text).unwrap();
     StatusCode::OK
 }
+
+/* 
+pub async fn webhook_handler_debug(
+    State(state): State<AppState>,
+    body: Bytes,
+) -> StatusCode {
+    
+    match std::str::from_utf8(&body) {
+        Ok(text) => {
+            tracing::info!("Webhook RAW body:\n{}", text);
+        }
+        Err(err) => {
+            tracing::error!("Body no es UTF-8 válido: {}", err);
+        }
+    }
+
+    StatusCode::OK
+}
+*/

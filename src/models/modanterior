@@ -1,4 +1,18 @@
+
 use serde::Deserialize;
+use serde_json::Value;
+
+#[derive(Debug, Deserialize)]
+pub struct WebhookEnvelope {
+    pub event: String,
+    pub instance: String,
+    pub data: Value, // 👈 por ahora genérico
+    pub destination: Option<String>,
+    pub date_time: Option<String>,
+    pub sender: Option<String>,
+    pub server_url: Option<String>,
+    pub apikey: Option<String>,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct WebhookEvent {
