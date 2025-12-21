@@ -4,16 +4,28 @@ use axum::{
     Json, 
     // body::Bytes,
 };
-use tracing::{info, warn, error};
-
 
 use crate::{
     app::AppState, 
-    models::webhook::WebhookEnvelope,
+    events::dispatcher, 
+    models::webhook::WebhookEnvelope
 };
 
-
 pub async fn webhook_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<WebhookEnvelope>
+) -> StatusCode {
+    // info!("Evento recibido: {}", payload.event);
+    // let state = state.clone();
+    // tokio::spawn(async move {
+        //     dispatcher::dispatch(payload, state).await;
+        // });
+        //StatusCode::OK
+    dispatcher::dispatch( payload, &state).await
+}
+
+/*
+pub async fn handler_anterior_acoplado(
     State(state): State<AppState>,
     Json(payload): Json<WebhookEnvelope>
 ) -> StatusCode {
@@ -45,7 +57,7 @@ pub async fn webhook_handler(
         }
     }
     // Tambien podemos extraer el texo...
-    // let Some(text) = payload.data.message.conversation.as_deref()
+    let Some(text) = payload.data.message.conversation.as_deref()
 
     // Enviar la respuesta en background, para no bloquear el handler
     // Clonamos el servicio desde el estado, para que tokio utilice una referencia estatica
@@ -85,7 +97,6 @@ pub async fn webhook_handler(
         );
     }
 
-
     // Terminamos execución del handler, y respondemos 200 OK inmediatamente    
     // let mut file = OpenOptions::new()
     //     .create(true)
@@ -95,6 +106,7 @@ pub async fn webhook_handler(
     // writeln!(file, "{} | {}", jid, text).unwrap();
     StatusCode::OK
 }
+*/
 
 /* 
 pub async fn webhook_handler_debug(

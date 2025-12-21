@@ -20,8 +20,6 @@ pub async fn webhook_auth(
         .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok());
 
-    tracing::info!("Headers: {:?}", req.headers());
-
     match auth_header {
         Some(value) => {
             // Esperamos: "Bearer TOKEN"
