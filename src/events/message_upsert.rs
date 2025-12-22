@@ -2,27 +2,34 @@ use axum::http::StatusCode;
 use serde_json::Value;
 use tracing::{info, error};
 use crate::{
-    app::AppState, 
-    models::{messages::MessageUpsertData}
+    app::AppState, events::message_processor::process_message, models::{domain::incoming_message::IncomingMessage, evolution::message_upsert::MessageUpsertData}
 };
 
-pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
+fn map_to_domain(parsed: MessageUpsertData) -> IncomingMessage {
+    IncomingMessage {
+        id: parsed.key.id.clone(),
+        remote_jid: parsed.key.remote_jid.clone(),
+        remote_jid_alt: parsed.key.remote_jid_alt.clone(),
+        text: parsed.message.conversation.clone(),
+        from_me: parsed.key.from_me,
+        timestamp: parsed.message_timestamp,
+    }
+}
 
+pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
     let parsed: MessageUpsertData = match serde_json::from_value(data) {
         Ok(v) => v,
         Err(err) => {
-            error!("Error parseando messages.upsert: {}", err);
+            error!("Payload con capacidades diferentes: {}", err);
             return StatusCode::OK;
         }
     };
+    
+    let message = map_to_domain(parsed);
 
-    // Extraer el ID del mensaje y el JID remoto, igual pero de forma distinta
-    let message_id = parsed.key.id.as_str();
-    let jid = parsed.key.remote_jid.clone();
-
-    match state.idempotency.check_and_mark(message_id).await {
+    match state.idempotency.check_and_mark(&message.id).await {
         Ok(false) => {
-            info!("Mensaje duplicado ignorado: {}", message_id);
+            info!("Mensaje duplicado ignorado: {}", message.id);
             return StatusCode::OK;
         }
         Err(err) => {
@@ -32,23 +39,11 @@ pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
         _ => {}
     }
 
-    let texto = parsed
-        .message
-        .conversation
-        .as_deref()
-        .unwrap_or("<sin texto>");
-    info!(jid = %jid, text = %texto, "Mensaje entrante");
+    if let Err(err) = process_message(state, message).await {
+        error!("Error procesando mensaje: {}", err);
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    }
 
-    // let evolution = state.evolution.clone();
-
-    // tokio::spawn(async move {
-    //     if let Err(err) = evolution
-    //         .send_message(&jid, "Mensaje recibido")
-    //         .await
-    //     {
-    //         error!("Error enviando mensaje: {}", err);
-    //     }
-    // });    
-
+    // El procesamiento, logging y respuesta asincrona lo va a hacer message_processor.rs
     StatusCode::OK
 }

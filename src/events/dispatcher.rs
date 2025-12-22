@@ -4,15 +4,25 @@ use axum::http::StatusCode;
 use crate::{
     app::AppState,
     models::webhook::WebhookEnvelope,
-    events::message_upsert,
+    events,
 };
 
 pub async fn dispatch( payload: WebhookEnvelope, state: &AppState, ) -> StatusCode {
     match payload.event.as_str() {
         "messages.upsert" => {
-            message_upsert::handle(state, payload.data).await
+            events::message_upsert::handle(state, payload.data).await
+        }
+        "messages.update" => {
+            events::message_update::handle(state, payload.data).await
         }
 
+        "messages.delete" => {
+            events::message_delete::handle(state, payload.data).await
+        }
+
+        "connection.update" => {
+            events::connection_update::handle(state, payload.data).await
+        }
         other => {
             warn!("Evento no manejado: {}", other);
             StatusCode::OK
