@@ -1,13 +1,31 @@
 use axum::http::StatusCode;
 use serde_json::Value;
-use tracing::warn;
+use tracing::{info, warn};
 
-use crate::app::AppState;
+use crate::{
+    app::AppState,
+    models::evolution::connection_update::ConnectionUpdateData,
+};
 
 pub async fn handle(
     _state: &AppState,
-    _data: Value,
+    data: Value,
 ) -> StatusCode {
-    warn!("connection.update recibido pero no implementado");
+    let parsed: ConnectionUpdateData = match serde_json::from_value(data) {
+        Ok(v) => v,
+        Err(err) => {
+            warn!("connection.update malformado: {}", err);
+            return StatusCode::OK;
+        }
+    };
+
+    info!(
+        instance = parsed.instance.as_deref().unwrap_or("unknown"),
+        state = parsed.state.as_deref().unwrap_or("unknown"),
+        status = parsed.status.as_deref().unwrap_or("unknown"),
+        reason = parsed.reason.as_deref().unwrap_or(""),
+        "Connection update recibido"
+    );
+
     StatusCode::OK
 }

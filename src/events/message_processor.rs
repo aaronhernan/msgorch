@@ -106,7 +106,7 @@ pub async fn process_message(
 }
 
 async fn handle_message(
-    state: &AppState,
+    _state: &AppState,
     message: &IncomingMessage,
 ) -> Result<(), ProcessError> {
     let text = message
@@ -115,9 +115,16 @@ async fn handle_message(
         .unwrap_or("<mensaje sin texto>");
     info!( message_id = %message.id, jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
 
-    state.evolution.send_message(&message.remote_jid, "Mensaje recibido")
-        .await.map_err(|err| {
-            ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
-        })?;
+    // Ahora aqui es donde decidimos:
+    // reglas
+    // workflows
+    // IA
+    // colas
+
+    // Contestar o no contestar...
+    // state.evolution.send_message(&message.remote_jid, "Mensaje recibido")
+    //     .await.map_err(|err| {
+    //         ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
+    //     })?;
     Ok(())
 }

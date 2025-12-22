@@ -5,3 +5,6 @@ pub mod message_delete;
 pub mod connection_update;
 pub mod dispatcher;
 pub mod message_processor;
+pub mod debug_event;
+pub mod presence_update;
+pub mod chats_update;
