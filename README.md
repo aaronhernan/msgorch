@@ -29,6 +29,8 @@ cargo add deadpool-redis redis
 cargo add anyhow
 # Agregar thiserror para generar errores propios, y no utilizar anyhow dentro de la logica de dominio
 cargo add thiserror
+# Para calcular jitter
+cargo add rand
 ```
 
 ## Verison a produccion
