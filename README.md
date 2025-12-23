@@ -3,7 +3,38 @@
 
 ## Descripcion
 
+# Informacion, tracing, debug, logs
 
+## Tipos de eventos
+Vamos a definir diferentes niveles de registro para poder filtrarlos en un 
+agregador de logs como Loki en un futuro, o poder cambiar el estado de la 
+aplicacion para poder para que lance mas o menor informacion sobre eventos.
+Los eventos debemos definirlos de la siguiente manera:
+
+
+| Nivel  | Cuándo usarlo                               |
+| ------ | ------------------------------------------- |
+| trace! | Detalles internos, casi debug de bajo nivel |
+| debug! | Flujo normal pero muy frecuente             |
+| info!  | Hechos relevantes del sistema               |
+| warn!  | Algo raro pero esperado                     |
+| error! | Algo falló y no debería                     |
+
+En resumen:
+- Funcionamiento → debug / info
+- Problema esperado → warn
+- Problema real → error
+
+Para iniciar el programa mediante un nivel de registro, podemos exportar 
+la variable de entorno, de manera temporal antes de executar la explicacion, 
+de manera permanente en el entorno del sistema, o en el archivo de env.
+```bash
+# De manera temporal
+RUST_LOG=error,info cargo run
+# De variable del sistema
+export RUST_LOG=error,info
+cargo run
+```
 
 # Creacion de proyecto y dependencias
 

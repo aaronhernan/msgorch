@@ -37,7 +37,7 @@ pub async fn process_message(
     
     // Filtros
     if message.from_me {
-        tracing::debug!( message_id = %message.id, "Mensaje ignorado (from_me)" );
+        tracing::debug!( message_id = %message.id, remote_jid = %message.remote_jid, "Mensaje ignorado (from_me)" );
         return Ok(());
     }
     
@@ -48,29 +48,24 @@ pub async fn process_message(
         attempt += 1;
         match handle_message(state, &message).await {
             Ok(_) => {
-                info!( message_id = %message.id, "Mensaje procesado correctamente" );
+                info!( message_id = %message.id, remote_jid = %message.remote_jid, "Mensaje procesado correctamente" );
                 return Ok(());
             }
             Err(err) => {
                 if !err.is_retryable() {
-                    error!(
-                        jid = %message.remote_jid,
-                        attempt,
-                        error = %err,
-                        "Error permanente, no se reintenta"
-                    );
+                    error!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, "Error permanente, no se reintenta" );
                     return Err(err);
                 }
                 // Aqui se supone que es retryable, vemos si agotamos reintentos
                 if attempt >= max_attempts {
-                    error!(jid = %message.remote_jid, attempt, error = %err, "Se agotaron los reintentos" );
+                    error!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, "Se agotaron los reintentos" );
                     return Err(err);
                 }
                 // Aqui es donde reintentamos
                 // Backoff exponencial con jitter
                 let max_delay = base_delay_ms * (1 << (attempt - 1));
                 let jitter: u64 = rand::rng().random_range(0..=max_delay);
-                debug!(jid = %message.remote_jid, attempt, delay_ms = jitter,error = %err, "Reintentando con backoff" );
+                debug!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, delay_ms = jitter, "Reintentando con backoff" );
                 tokio::time::sleep(Duration::from_millis(jitter)).await;
             }
         }
@@ -113,7 +108,7 @@ async fn handle_message(
         .text
         .as_deref()
         .unwrap_or("<mensaje sin texto>");
-    info!( message_id = %message.id, jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
+    info!( message_id = %message.id, remote_jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
 
     // Ahora aqui es donde decidimos:
     // reglas

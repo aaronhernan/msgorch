@@ -1,4 +1,4 @@
-use tracing::warn;
+use tracing;
 use axum::http::StatusCode;
 
 use crate::{
@@ -8,6 +8,16 @@ use crate::{
 };
 
 pub async fn dispatch( payload: WebhookEnvelope, state: &AppState, ) -> StatusCode {
+    let span = tracing::info_span!(
+        "webhook_event",
+        app = %state.config.app_name,
+        instance = %payload.instance,
+        event = %payload.event,
+        remote_jid = tracing::field::Empty,
+        message_id = tracing::field::Empty,
+    );
+    let _enter = span.enter();
+
     match payload.event.as_str() {
         "messages.upsert"   => { events::message_upsert::handle(state, payload.data).await }
         "messages.update"   => { events::message_update::handle(state, payload.data).await }
@@ -15,8 +25,8 @@ pub async fn dispatch( payload: WebhookEnvelope, state: &AppState, ) -> StatusCo
         "connection.update" => { events::connection_update::handle(state, payload.data).await }
         "presence.update"   => { events::presence_update::handle(state, payload.data).await }
         "chats.update"      => { events::chats_update::handle(state, payload.data).await }
-        other => {
-            warn!("Evento no manejado: {}", other);
+        _ => {
+            tracing::warn!("Evento no manejado");
             events::debug_event::handle(state, payload.data).await;
             StatusCode::OK
         }
