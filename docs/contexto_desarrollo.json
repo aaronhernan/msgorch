@@ -1,0 +1,36 @@
+{
+  "exported_at": "2025-12-23T07:05:28.688977Z",
+  "project": "Evolution Webhook Backend",
+  "language": "Rust",
+  "architecture": {
+    "webhook_handler": "Recibe WebhookEnvelope y crea tracing span",
+    "dispatcher": "Match por evento y delega",
+    "events": "Handlers por evento en src/events"
+  },
+  "domain_models": {
+    "IncomingMessage": {
+      "id": "String",
+      "remote_jid": "String",
+      "remote_jid_alt": "Option<String>",
+      "text": "Option<String>",
+      "timestamp": "Option<i64>",
+      "from_me": "bool"
+    }
+  },
+  "key_decisions": [
+    "Idempotencia solo en message_upsert",
+    "Retries con backoff exponencial real",
+    "Tracing normalizado con info_span",
+    "No refactorizaciones prematuras",
+    "Separación evolution vs domain models"
+  ],
+  "events_implemented": [
+    "messages.upsert",
+    "messages.update",
+    "message.update",
+    "connection.update",
+    "presence.update",
+    "chats.update"
+  ],
+  "status": "Estable, compilando sin warnings"
+}

@@ -16,6 +16,14 @@ fn map_to_domain(parsed: MessageUpsertData) -> IncomingMessage {
     }
 }
 
+fn validate_message(message: &IncomingMessage) -> bool {
+    // Validaciones basicas
+    if message.id.is_empty() || message.remote_jid.is_empty() {
+        return false;
+    }
+    true
+}
+
 pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
     let parsed: MessageUpsertData = match serde_json::from_value(data) {
         Ok(v) => v,
@@ -26,6 +34,11 @@ pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
     };
     
     let message = map_to_domain(parsed);
+    
+    if !validate_message(&message){
+        warn!(message_id = %message.id, "Mensaje con datos invalidos");
+        return StatusCode::OK;
+    }
 
     match state.idempotency.check_and_mark(&message.id).await {
         Ok(false) => {
