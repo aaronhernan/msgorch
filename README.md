@@ -99,3 +99,10 @@ Volume=evolution_redis:/data
 [Service]
 Restart=always
 ```
+
+## Postgres
+Requerimos postgres, para guardar persistencia entre mensajes e historial de mensajes.
+Si no se tiene un servidor, se puede agregar uno mediante podman o crear las credenciales de uso.
+
+
+
