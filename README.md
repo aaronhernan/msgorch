@@ -2,6 +2,9 @@
 # MsgOrch (Messages Orchestrator)
 
 ## Descripcion
+Actualizaremos descipcion cuando vaya tomando forma la cosa...
+Y si ves este comentario y no te parece, estas invitado a contribuir y mejorar la app !
+Y si no, tambien.
 
 # Informacion, tracing, debug, logs
 
@@ -62,6 +65,7 @@ cargo add anyhow
 cargo add thiserror
 # Para calcular jitter
 cargo add rand
+cargo install sqlx-cli --no-default-features --features postgres
 ```
 
 ## Verison a produccion
@@ -104,5 +108,35 @@ Restart=always
 Requerimos postgres, para guardar persistencia entre mensajes e historial de mensajes.
 Si no se tiene un servidor, se puede agregar uno mediante podman o crear las credenciales de uso.
 
+### Crear db y usuarios
+```bash
+#Si se tiene psql
+psql -U postgres -h localhost
 
+# Si no se tiene, se utiliza el del contenedor
+podman exec -it postgres-general /bin/bash
+psql -U postgres
 
+# Despues
+# Si se quiere utilizar password:
+CREATE USER msgorchuser WITH ENCRYPTED PASSWORD 'local.Pass9';
+CREATE DATABASE msgorch_db OWNER msgorchuser;
+# Opcional, pero en veces necsario, si se utiliza un esquema de permisos complejo
+GRANT ALL PRIVILEGES ON DATABASE msgorch_db TO msgorchuser;
+\q
+```
+Nota: si estas dentro de un contenedor, utilizar [Ctrl-p, Ctrl+q] para des-attach del contenedor 
+      y no detenerlo
+
+### Crear migraciones y correrlas
+Se utiliza la carpeta del proyecto "./migrations/" para guardar las migraciones en codigo sql, las cuales son 
+generadas por el comando sqlx. Para la instalacion y creacion de migraciones :
+
+```bash
+cargo install sqlx-cli --no-default-features --features postgres
+sqlx migrate add -r create_incoming_messages
+# Despues editar los archivos para executar y revertir la migracion, despues:
+sqlx migrate run
+# Revertir:
+sqlx migrate revert
+```

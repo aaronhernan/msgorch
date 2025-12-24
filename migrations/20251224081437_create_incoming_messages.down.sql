@@ -1,0 +1,1 @@
+DROP TABLE incoming_messages;
