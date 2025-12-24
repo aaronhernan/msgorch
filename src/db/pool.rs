@@ -1,11 +1,13 @@
-use sqlx::{Pool, Postgres};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 
-pub type DbPool = Pool<Postgres>;
+//pub type DbPool = Pool<Postgres>;
 
-pub async fn create_pool(database_url: &str) -> Result<DbPool, sqlx::Error> {
-    Pool::<Postgres>::builder()
+pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
+    //Pool::<Postgres>::builder()
+    PgPoolOptions::new()
         .max_connections(10)
+        .min_connections(2)
         .acquire_timeout(Duration::from_secs(5))
         .connect(database_url)
         .await

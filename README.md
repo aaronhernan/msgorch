@@ -65,7 +65,12 @@ cargo add anyhow
 cargo add thiserror
 # Para calcular jitter
 cargo add rand
+cargo add sqlx --features runtime-tokio-rustls,postgres,macros,migrate
 cargo install sqlx-cli --no-default-features --features postgres
+# Por si utilizamos UUIDs
+# cargo add uuid --features v4,serde
+# Por si utilizamos chrono
+# cargo add chrono --features serde
 ```
 
 ## Verison a produccion

@@ -8,6 +8,8 @@ use crate::{
 fn map_to_domain(parsed: MessageUpsertData) -> IncomingMessage {
     IncomingMessage {
         id: parsed.key.id.clone(),
+        //instance: parsed.instance.clone(),
+        instance: "servicewa".to_string(),
         remote_jid: parsed.key.remote_jid.clone(),
         remote_jid_alt: parsed.key.remote_jid_alt.clone(),
         text: parsed.message.conversation.clone(),

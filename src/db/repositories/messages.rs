@@ -1,58 +1,45 @@
 use sqlx::PgPool;
-use crate::models::domain::IncomingMessage;
 
-pub struct MessageRepository;
+use crate::models::domain::incoming_message::IncomingMessage;
+//use crate::db::repositories::repository_error::RepositoryError;
+
+#[derive(Clone)]
+pub struct MessageRepository {
+    pool: PgPool,
+}
 
 impl MessageRepository {
-    pub async fn insert(
-        pool: &PgPool,
-        instance: &str,
-        msg: &IncomingMessage,
-    ) -> Result<(), sqlx::Error> {
-        sqlx::query!(
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+
+    pub async fn insert_incoming( &self, message: &IncomingMessage, ) 
+    //-> Result<i64, RepositoryError> 
+    -> Result<i64, sqlx::Error>
+    {
+        let record = sqlx::query!(
             r#"
-            INSERT INTO messages (
-                id,
+            INSERT INTO incoming_messages (
                 instance,
+                evolution_message_id,
                 remote_jid,
                 remote_jid_alt,
                 text,
-                timestamp,
-                from_me
+                timestamp
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (id) DO NOTHING
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id
             "#,
-            msg.id,
-            instance,
-            msg.remote_jid,
-            msg.remote_jid_alt,
-            msg.text,
-            msg.timestamp,
-            msg.from_me,
+            message.instance,
+            message.id,
+            message.remote_jid,
+            message.remote_jid_alt,
+            message.text,
+            message.timestamp
         )
-        .execute(pool)
+        .fetch_one(&self.pool)
         .await?;
 
-        Ok(())
-    }
-
-    pub async fn mark_processed(
-        pool: &PgPool,
-        message_id: &str,
-    ) -> Result<(), sqlx::Error> {
-        sqlx::query!(
-            r#"
-            UPDATE messages
-            SET status = 'processed',
-                processed_at = now()
-            WHERE id = $1
-            "#,
-            message_id
-        )
-        .execute(pool)
-        .await?;
-
-        Ok(())
+        Ok(record.id)
     }
 }

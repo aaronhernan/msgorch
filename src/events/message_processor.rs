@@ -108,6 +108,13 @@ async fn handle_message(
         .text
         .as_deref()
         .unwrap_or("<mensaje sin texto>");
+    
+    
+    let db_id = state
+    .message_repository
+    .insert_incoming(&message)
+    .await;
+    info!("Mensaje insertado con ID: {:?}", db_id);
     info!( message_id = %message.id, remote_jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
 
     // Ahora aqui es donde decidimos:
@@ -117,9 +124,9 @@ async fn handle_message(
     // colas
 
     // Contestar o no contestar...
-    state.evolution.send_message(&message.remote_jid, "Mensaje recibido desde oficinas de Dsoft")
-        .await.map_err(|err| {
-            ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
-        })?;
+    // state.evolution.send_message(&message.remote_jid, "Mensaje recibido")
+    //     .await.map_err(|err| {
+    //         ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
+    //     })?;
     Ok(())
 }

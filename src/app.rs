@@ -4,11 +4,12 @@ use tokio::net::TcpListener;
 use tracing::info;
 
 use crate::{
-    config::Config,
+    config::Config, 
+    db::repositories::messages::MessageRepository,
+    db::pool::create_pool,
     handlers,
-    middleware,
-    services::evolution::EvolutionService,
     idempotency::RedisIdempotencyStore,
+    middleware, services::evolution::EvolutionService
 };
 
 // pub type AppState = (
@@ -21,6 +22,7 @@ pub struct AppState {
     pub config: Config,
     pub evolution: EvolutionService,
     pub idempotency: RedisIdempotencyStore,
+    pub message_repository: MessageRepository,
 }
 
 pub fn build_router(state: AppState) -> Router {
@@ -59,10 +61,14 @@ pub async fn run_with_listener( listener: TcpListener, config: Config,) -> anyho
     );
 
     let evolution = EvolutionService::new(&config);
+
+    //let message_repository = MessageRepository::new(sqlx::PgPool::connect(&config.database_url).await?);
+    let pg_pool = create_pool(&config.database_url).await?;
+    let message_repository = MessageRepository::new(pg_pool.clone());
     //let state = (config.clone(), evolution, idempotency);
     // Comentario de aprendizaje. Vamos a meter el ownership de los elementos en AppState
     //   el state es el dueno de sus dependencias
-    let state = AppState { config, evolution, idempotency, };
+    let state = AppState { config, evolution, idempotency, message_repository, };
     let app = build_router(state);
     info!("Escuchando en http://{}", listener.local_addr()?);
 
