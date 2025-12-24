@@ -101,7 +101,7 @@ pub async fn process_message(
 }
 
 async fn handle_message(
-    _state: &AppState,
+    state: &AppState,
     message: &IncomingMessage,
 ) -> Result<(), ProcessError> {
     let text = message
@@ -117,9 +117,9 @@ async fn handle_message(
     // colas
 
     // Contestar o no contestar...
-    // state.evolution.send_message(&message.remote_jid, "Mensaje recibido")
-    //     .await.map_err(|err| {
-    //         ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
-    //     })?;
+    state.evolution.send_message(&message.remote_jid, "Mensaje recibido desde oficinas de Dsoft")
+        .await.map_err(|err| {
+            ProcessError::Retryable(format!("Error enviando mensaje a Evolution API: {err}"))
+        })?;
     Ok(())
 }
