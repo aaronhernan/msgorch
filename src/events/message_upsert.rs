@@ -8,8 +8,6 @@ use crate::{
 fn map_to_domain(parsed: MessageUpsertData) -> IncomingMessage {
     IncomingMessage {
         id: parsed.key.id.clone(),
-        //instance: parsed.instance.clone(),
-        instance: "servicewa".to_string(),
         remote_jid: parsed.key.remote_jid.clone(),
         remote_jid_alt: parsed.key.remote_jid_alt.clone(),
         text: parsed.message.conversation.clone(),
@@ -26,7 +24,7 @@ fn validate_message(message: &IncomingMessage) -> bool {
     true
 }
 
-pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
+pub async fn handle(state: &AppState, data: Value, instance: &str) -> StatusCode {
     let parsed: MessageUpsertData = match serde_json::from_value(data) {
         Ok(v) => v,
         Err(err) => {
@@ -54,7 +52,7 @@ pub async fn handle(state: &AppState, data: Value,) -> StatusCode {
         _ => {}
     }
 
-    if let Err(err) = process_message(state, message).await {
+    if let Err(err) = process_message(state, message, instance).await {
         error!(err = %err, "Error procesando mensaje");
         return StatusCode::INTERNAL_SERVER_ERROR;
     }

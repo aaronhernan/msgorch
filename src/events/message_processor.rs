@@ -32,6 +32,7 @@ impl fmt::Display for ProcessError {
 pub async fn process_message(
     state: &AppState,
     message: IncomingMessage,
+    instance: &str,
 ) -> Result<(), ProcessError> {
 
     
@@ -46,7 +47,7 @@ pub async fn process_message(
     let mut attempt = 0;
     loop {
         attempt += 1;
-        match handle_message(state, &message).await {
+        match handle_message(state, &message, instance).await {
             Ok(_) => {
                 info!( message_id = %message.id, remote_jid = %message.remote_jid, "Mensaje procesado correctamente" );
                 return Ok(());
@@ -103,6 +104,7 @@ pub async fn process_message(
 async fn handle_message(
     state: &AppState,
     message: &IncomingMessage,
+    instance: &str,
 ) -> Result<(), ProcessError> {
     let text = message
         .text
@@ -112,7 +114,7 @@ async fn handle_message(
     
     let db_id = state
     .message_repository
-    .insert_incoming(&message)
+    .insert_incoming(&message, instance)
     .await;
     info!("Mensaje insertado con ID: {:?}", db_id);
     info!( message_id = %message.id, remote_jid = %message.remote_jid, texto = %text, "Mensaje entrante" );

@@ -19,7 +19,7 @@ pub async fn dispatch( payload: WebhookEnvelope, state: &AppState, ) -> StatusCo
     let _enter = span.enter();
 
     match payload.event.as_str() {
-        "messages.upsert"   => { events::message_upsert::handle(state, payload.data).await }
+        "messages.upsert"   => { events::message_upsert::handle(state, payload.data, &payload.instance).await }
         "messages.update"   => { events::message_update::handle(state, payload.data).await }
         "messages.delete"   => { events::message_delete::handle(state, payload.data).await }
         "connection.update" => { events::connection_update::handle(state, payload.data).await }
