@@ -1,0 +1,15 @@
+{
+    "event": "chats.update",
+    "instance": "servicewa",
+    "data": [
+        {
+            "remoteJid": "5216622001169@s.whatsapp.net",
+            "instanceId": "484f2677-cb3f-46fa-b67f-177a9bbb51fd"
+        }
+    ],
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2025-12-27T03:24:40.868Z",
+    "sender": "5216321123877@s.whatsapp.net",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}

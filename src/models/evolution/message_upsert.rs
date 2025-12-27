@@ -26,6 +26,6 @@ pub struct MessageKey {
 
 #[derive(Debug, Deserialize)]
 pub struct MessageContent {
-    pub conversation: Option<String>,
+    pub conversation: String,
     // pub messageContextInfo: Option<Value>, // Contexto del mensaje (dispositivo, messageSecret)
 }

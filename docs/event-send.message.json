@@ -1,0 +1,28 @@
+{
+    "contextInfo": Object {
+        "disappearingMode": Object {
+            "initiator": Number(0)
+        },
+        "ephemeralSettingTimestamp": Object {
+            "high": Number(0),
+            "low": Number(1766633719),
+            "unsigned": Bool(false)
+        },
+        "groupMentions": Array [],
+        "mentionedJid": Array []
+    },
+    "instanceId": String("484f2677-cb3f-46fa-b67f-177a9bbb51fd"),
+    "key": Object {
+        "fromMe": Bool(true),
+        "id": String("3EB094354B860D7A8CADB4"),
+        "remoteJid": String("5216622001169@s.whatsapp.net")
+    },
+    "message": Object {
+        "conversation": String("Mensaje recibido")
+    },
+    "messageTimestamp": Number(1766806519),
+    "messageType": String("conversation"),
+    "pushName": String("Você"),
+    "source": String("web"),
+    "status": String("PENDING")
+}

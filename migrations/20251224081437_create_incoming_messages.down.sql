@@ -1,1 +1,1 @@
-DROP TABLE incoming_messages;
+DROP TABLE messages;

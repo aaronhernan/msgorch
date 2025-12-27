@@ -70,6 +70,10 @@ pub async fn run_with_listener( listener: TcpListener, config: Config,) -> anyho
     //   el state es el dueno de sus dependencias
     let state = AppState { config, evolution, idempotency, message_repository, };
     let app = build_router(state);
+
+    //let current_filter = tracing::metadata::LevelFilter::current();
+    //print!("Current filter: {:?}", current_filter);
+
     info!("Escuchando en http://{}", listener.local_addr()?);
 
     axum::serve(listener, app).await?;

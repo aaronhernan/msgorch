@@ -1,14 +1,17 @@
 use chrono::{DateTime, Utc};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, sqlx::FromRow)]
 pub struct Message {
     /// ID interno (PK)
     pub id: Option<i64>,
 
-    /// ID original de Evolution / WhatsApp
-    pub evolution_id: String,
+    /// Indica si el mensaje es entrante (false) o saliente (true)
+    pub from_me: bool,
 
-    /// Instancia de Evolution (WhatsApp)
+    /// ID original de Evolution / WhatsApp
+    pub transporter_id: String,
+
+    /// Instancia de Evolution (Transporter)
     pub instance: String,
 
     /// JID remoto principal

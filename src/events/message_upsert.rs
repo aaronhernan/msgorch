@@ -2,23 +2,28 @@ use axum::http::StatusCode;
 use serde_json::Value;
 use tracing::{error, warn};
 use crate::{
-    app::AppState, events::message_processor::process_message, models::{domain::incoming_message::IncomingMessage, evolution::message_upsert::MessageUpsertData}
+    app::AppState, events::message_processor::process_message, 
+    models::evolution::message_upsert::MessageUpsertData,
+    models::message::Message,
 };
 
-fn map_to_domain(parsed: MessageUpsertData) -> IncomingMessage {
-    IncomingMessage {
-        id: parsed.key.id.clone(),
+fn map_to_domain(parsed: MessageUpsertData, instance: &str) -> Message {
+    Message {
+        id: None,
+        instance: instance.to_string().clone(),
+        transporter_id: parsed.key.id.clone(),
         remote_jid: parsed.key.remote_jid.clone(),
         remote_jid_alt: parsed.key.remote_jid_alt.clone(),
         text: parsed.message.conversation.clone(),
         from_me: parsed.key.from_me,
         timestamp: parsed.message_timestamp,
+        created_at: chrono::Utc::now(),
     }
 }
 
-fn validate_message(message: &IncomingMessage) -> bool {
-    // Validaciones basicas
-    if message.id.is_empty() || message.remote_jid.is_empty() {
+fn validate_message(message: &Message) -> bool {
+    // Validaciones basicas, casi ejemplo, solo para dejar el lugar donde agregar mas
+    if message.remote_jid.is_empty() {
         return false;
     }
     true
@@ -32,17 +37,17 @@ pub async fn handle(state: &AppState, data: Value, instance: &str) -> StatusCode
             return StatusCode::OK;
         }
     };
-    
-    let message = map_to_domain(parsed);
-    
+
+    let message = map_to_domain(parsed, instance);
+
     if !validate_message(&message){
-        warn!(message_id = %message.id, "Mensaje con datos invalidos");
+        warn!(transporter_id = %message.transporter_id, "Mensaje con datos invalidos");
         return StatusCode::OK;
     }
 
-    match state.idempotency.check_and_mark(&message.id).await {
+    match state.idempotency.check_and_mark(&message.transporter_id).await {
         Ok(false) => {
-            warn!(message_id = %message.id, "Mensaje duplicado ignorado");
+            warn!(transporter_id = %message.transporter_id, "Mensaje duplicado ignorado");
             return StatusCode::OK;
         }
         Err(err) => {

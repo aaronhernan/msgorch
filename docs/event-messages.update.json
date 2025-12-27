@@ -1,0 +1,17 @@
+{
+    "event": "messages.update",
+    "instance": "servicewa",
+    "data": {
+        "keyId": "3EB0847B419598C9293971",
+        "remoteJid": "176158201110710@lid",
+        "fromMe": false,
+        "status": "READ",
+        "instanceId": "484f2677-cb3f-46fa-b67f-177a9bbb51fd",
+        "messageId": "cmjnx17pb0027sy6cezky6jhv"
+    },
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2025-12-27T03:29:32.899Z",
+    "sender": "5216321123877@s.whatsapp.net",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}

@@ -1,10 +1,10 @@
 use tracing::{debug, error, info};
-use crate::{app::AppState, models::domain::incoming_message::IncomingMessage};
+use crate::{app::AppState, models::message::Message};
 use std::{fmt, time::Duration};
 use rand::Rng;
 
-// const MAX_RETRIES: u8 = 3;
-// const BASE_DELAY_MS: u64 = 500;
+const MAX_RETRIES: u8 = 5;
+const BASE_DELAY_MS: u64 = 1000;
 
 #[derive(Debug)]
 pub enum ProcessError {
@@ -31,49 +31,50 @@ impl fmt::Display for ProcessError {
 
 pub async fn process_message(
     state: &AppState,
-    message: IncomingMessage,
+    message: Message,
     instance: &str,
 ) -> Result<(), ProcessError> {
 
     
     // Filtros
     if message.from_me {
-        tracing::debug!( message_id = %message.id, remote_jid = %message.remote_jid, "Mensaje ignorado (from_me)" );
+        tracing::debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, "Mensaje ignorado (from_me)" );
         return Ok(());
     }
-    
-    let max_attempts = 5;
-    let base_delay_ms = 1000;
+
+    let max_attempts = MAX_RETRIES;
+    let base_delay_ms = BASE_DELAY_MS;
     let mut attempt = 0;
     loop {
         attempt += 1;
         match handle_message(state, &message, instance).await {
             Ok(_) => {
-                info!( message_id = %message.id, remote_jid = %message.remote_jid, "Mensaje procesado correctamente" );
+                //info!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, "Mensaje procesado correctamente" );
+                debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, text = %message.text, "Procesamiento exitoso" );
                 return Ok(());
             }
             Err(err) => {
                 if !err.is_retryable() {
-                    error!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, "Error permanente, no se reintenta" );
+                    error!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, "Error permanente, no se reintenta" );
                     return Err(err);
                 }
                 // Aqui se supone que es retryable, vemos si agotamos reintentos
                 if attempt >= max_attempts {
-                    error!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, "Se agotaron los reintentos" );
+                    error!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, "Se agotaron los reintentos" );
                     return Err(err);
                 }
                 // Aqui es donde reintentamos
                 // Backoff exponencial con jitter
                 let max_delay = base_delay_ms * (1 << (attempt - 1));
                 let jitter: u64 = rand::rng().random_range(0..=max_delay);
-                debug!( message_id = %message.id, remote_jid = %message.remote_jid, error = %err, delay_ms = jitter, "Reintentando con backoff" );
+                debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, delay_ms = jitter, "Reintentando con backoff" );
                 tokio::time::sleep(Duration::from_millis(jitter)).await;
             }
         }
     }
     // El resto del procesamiento lo hace handle_message
     // Logging
-    //info!(message_id = %message.id,jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
+    //info!(transporter_id = %message.id,jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
 
     // Acciones
     // state
@@ -103,21 +104,17 @@ pub async fn process_message(
 
 async fn handle_message(
     state: &AppState,
-    message: &IncomingMessage,
+    message: &Message,
     instance: &str,
 ) -> Result<(), ProcessError> {
-    let text = message
-        .text
-        .as_deref()
-        .unwrap_or("<mensaje sin texto>");
-    
+    //let text = message.text.clone();
     
     let db_id = state
     .message_repository
     .insert_incoming(&message, instance)
     .await;
     info!("Mensaje insertado con ID: {:?}", db_id);
-    info!( message_id = %message.id, remote_jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
+    //info!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, texto = %text, "Mensaje entrante" );
 
     // Ahora aqui es donde decidimos:
     // reglas
