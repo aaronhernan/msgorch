@@ -12,23 +12,14 @@ pub async fn handle(_state: &AppState, data: Value) -> StatusCode {
         Ok(v) => v,
         Err(err) => {
             warn!("Error parseando message_update: {}", err);
-            //debug!("Payload: {:?}", data);
             return StatusCode::OK;
         }
     };
 
-    // No voy a utilizar idempotencia en updates, por que pueden llegar varios
-    // if !state.idempotency.check_and_mark(message_id).await.unwrap_or(false) {
-    //     info!("Update duplicado ignorado: {}", message_id);
-    //     return StatusCode::OK;
-    // }
-    let message_id = parsed.key.id.as_deref().unwrap_or("N/A");
-    let jid = parsed.key.remote_jid.as_deref().unwrap_or("N/A");
-    let status = parsed.update.status.unwrap_or(-1);
     info!(
-        message_id = %message_id,
-        jid = %jid,
-        status = %status,
+        transporter_id = %parsed.key_id,
+        jid = %parsed.remote_jid,
+        status = %parsed.status.unwrap_or("<no value>".to_string()),
         "Mensaje actualizado"
     );
     StatusCode::OK

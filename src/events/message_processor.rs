@@ -38,7 +38,7 @@ pub async fn process_message(
     
     // Filtros
     if message.from_me {
-        tracing::debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, "Mensaje ignorado (from_me)" );
+        tracing::debug!( transporter_message_id = %message.transporter_message_id, remote_jid = %message.remote_jid, "Mensaje ignorado (from_me)" );
         return Ok(());
     }
 
@@ -50,24 +50,24 @@ pub async fn process_message(
         match handle_message(state, &message, instance).await {
             Ok(_) => {
                 //info!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, "Mensaje procesado correctamente" );
-                debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, text = %message.text, "Procesamiento exitoso" );
+                debug!( transporter_message_id = %message.transporter_message_id, remote_jid = %message.remote_jid, text = %message.text, "Procesamiento exitoso" );
                 return Ok(());
             }
             Err(err) => {
                 if !err.is_retryable() {
-                    error!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, "Error permanente, no se reintenta" );
+                    error!( transporter_message_id = %message.transporter_message_id, remote_jid = %message.remote_jid, error = %err, "Error permanente, no se reintenta" );
                     return Err(err);
                 }
                 // Aqui se supone que es retryable, vemos si agotamos reintentos
                 if attempt >= max_attempts {
-                    error!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, "Se agotaron los reintentos" );
+                    error!( transporter_message_id = %message.transporter_message_id, remote_jid = %message.remote_jid, error = %err, "Se agotaron los reintentos" );
                     return Err(err);
                 }
                 // Aqui es donde reintentamos
                 // Backoff exponencial con jitter
                 let max_delay = base_delay_ms * (1 << (attempt - 1));
                 let jitter: u64 = rand::rng().random_range(0..=max_delay);
-                debug!( transporter_id = %message.transporter_id, remote_jid = %message.remote_jid, error = %err, delay_ms = jitter, "Reintentando con backoff" );
+                debug!( transporter_message_id = %message.transporter_message_id, remote_jid = %message.remote_jid, error = %err, delay_ms = jitter, "Reintentando con backoff" );
                 tokio::time::sleep(Duration::from_millis(jitter)).await;
             }
         }

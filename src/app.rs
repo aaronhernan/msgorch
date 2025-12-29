@@ -1,4 +1,4 @@
-use axum::{Router,};
+use axum::{Router, routing::post,};
 use deadpool_redis::{Config as RedisConfig, Runtime};
 use tokio::net::TcpListener;
 use tracing::info;
@@ -9,7 +9,7 @@ use crate::{
     db::pool::create_pool,
     handlers,
     idempotency::RedisIdempotencyStore,
-    middleware, services::evolution::EvolutionService
+    middleware, services::evolution::EvolutionService,
 };
 
 // pub type AppState = (
@@ -27,10 +27,8 @@ pub struct AppState {
 
 pub fn build_router(state: AppState) -> Router {
     Router::new()
-        .route(
-            "/webhook",
-            axum::routing::post(handlers::webhook::webhook_handler),
-        )
+        .route("/webhook",post(handlers::webhook::webhook_handler),)
+        .route("/message",post(handlers::message::message_handler),)
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),
             middleware::webhook_auth,

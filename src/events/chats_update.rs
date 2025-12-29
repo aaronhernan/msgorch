@@ -20,11 +20,8 @@ pub async fn handle(
     };
 
     info!(
-        chat_id = %parsed.id,
-        unread = ?parsed.unread_count,
-        archived = ?parsed.archived,
-        pinned = ?parsed.pinned,
-        name = ?parsed.name,
+        remote_jid = %parsed.remote_jid,
+        instance_id = %parsed.instance_id,
         "Chat actualizado"
     );
 

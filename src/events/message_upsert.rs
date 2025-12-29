@@ -11,7 +11,7 @@ fn map_to_domain(parsed: MessageUpsertData, instance: &str) -> Message {
     Message {
         id: None,
         instance: instance.to_string().clone(),
-        transporter_id: parsed.key.id.clone(),
+        transporter_message_id: parsed.key.id.clone(),
         remote_jid: parsed.key.remote_jid.clone(),
         remote_jid_alt: parsed.key.remote_jid_alt.clone(),
         text: parsed.message.conversation.clone(),
@@ -41,13 +41,13 @@ pub async fn handle(state: &AppState, data: Value, instance: &str) -> StatusCode
     let message = map_to_domain(parsed, instance);
 
     if !validate_message(&message){
-        warn!(transporter_id = %message.transporter_id, "Mensaje con datos invalidos");
+        warn!(transporter_message_id = %message.transporter_message_id, "Mensaje con datos invalidos");
         return StatusCode::OK;
     }
 
-    match state.idempotency.check_and_mark(&message.transporter_id).await {
+    match state.idempotency.check_and_mark(&message.transporter_message_id).await {
         Ok(false) => {
-            warn!(transporter_id = %message.transporter_id, "Mensaje duplicado ignorado");
+            warn!(transporter_message_id = %message.transporter_message_id, "Mensaje duplicado ignorado");
             return StatusCode::OK;
         }
         Err(err) => {

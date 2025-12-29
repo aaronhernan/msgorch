@@ -20,11 +20,11 @@ pub async fn dispatch( payload: WebhookEnvelope, state: &AppState, ) -> StatusCo
 
     match payload.event.as_str() {
         "messages.upsert"   => { events::message_upsert::handle(state, payload.data, &payload.instance).await }
-        //"messages.update"   => { events::message_update::handle(state, payload.data).await }
+        "messages.update"   => { events::message_update::handle(state, payload.data).await }
         //"messages.delete"   => { events::message_delete::handle(state, payload.data).await }
         //"connection.update" => { events::connection_update::handle(state, payload.data).await }
         //"presence.update"   => { events::presence_update::handle(state, payload.data).await }
-        //"chats.update"      => { events::chats_update::handle(state, payload.data).await }
+        "chats.update"      => { events::chats_update::handle(state, payload.data).await }
         _ => {
             tracing::warn!("Evento no manejado");
             if tracing::enabled!(tracing::Level::DEBUG) {

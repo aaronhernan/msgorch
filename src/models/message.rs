@@ -9,7 +9,7 @@ pub struct Message {
     pub from_me: bool,
 
     /// ID original de Evolution / WhatsApp
-    pub transporter_id: String,
+    pub transporter_message_id: String,
 
     /// Instancia de Evolution (Transporter)
     pub instance: String,

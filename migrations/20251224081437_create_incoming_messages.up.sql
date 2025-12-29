@@ -2,13 +2,13 @@ CREATE TABLE messages (
     id BIGSERIAL PRIMARY KEY,
     from_me BOOLEAN NOT NULL,
     instance TEXT NOT NULL,
-    transporter_id TEXT,
+    transporter_message_id TEXT,
     remote_jid TEXT NOT NULL,
     remote_jid_alt TEXT,
     text TEXT NOT NULL,
     timestamp BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT uq_evolution_message UNIQUE (instance, transporter_id)
+    CONSTRAINT uq_evolution_message UNIQUE (instance, transporter_message_id)
 );
 
 -- Mensajes por conversación
@@ -21,7 +21,7 @@ ON messages (remote_jid, instance, created_at DESC);
 -- ON messages (remote_jid);
 
 -- Mensajes por instancia
--- No lo voy a agregar, por que al crear la restriccion UNIQUE en (instance, transporter_id)
+-- No lo voy a agregar, por que al crear la restriccion UNIQUE en (instance, transporter_message_id)
 -- ya se crea un indice unico que sirve para este proposito
 -- CREATE INDEX idx_messages_instance_created_at
 -- ON messages (instance, created_at DESC);
