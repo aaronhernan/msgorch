@@ -34,7 +34,7 @@ fn map_to_domain(evelope: ApiEnvelope) -> Result<Message, serde_json::Error> {
 }
 
 pub async fn message_handler(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<ApiEnvelope>
 ) -> StatusCode {
     let message = match map_to_domain(payload)
@@ -45,6 +45,14 @@ pub async fn message_handler(
             return StatusCode::BAD_REQUEST;
         }
     };
-    tracing::info!("Mensaje recibido: {:?}", message);
-    StatusCode::OK
+    tracing::info!("Mensaje encolado: {:?}", message);
+
+    let result = state.evolution.send_message(&message.remote_jid, "Mensaje recibido").await;
+    match result {
+        Ok(_) => StatusCode::OK,
+        Err(err) => {
+            error!("Error mandando mensaje {:?}", err);
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
 }

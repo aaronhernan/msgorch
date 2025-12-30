@@ -28,7 +28,7 @@ pub struct AppState {
 pub fn build_router(state: AppState) -> Router {
     Router::new()
         .route("/webhook",routing::post(handlers::webhook::webhook_handler),)
-        .route("/message",routing::post(handlers::message::message_handler),)
+        //.route("/message",routing::post(handlers::message::message_handler),)
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),
             middleware::webhook_auth,
@@ -38,6 +38,7 @@ pub fn build_router(state: AppState) -> Router {
 
 pub fn build_public_router(state: AppState) -> Router {
     Router::new()
+        .route("/message",routing::post(handlers::message::message_handler),)
         .route("/", routing::get(|| async {"Public route"}))
         .with_state(state)
 }
@@ -75,19 +76,23 @@ pub async fn run_with_listener( listener_private: TcpListener, listener_public: 
     // Comentario de aprendizaje. Vamos a meter el ownership de los elementos en AppState
     //   el state es el dueno de sus dependencias
     let state = AppState { config, evolution, idempotency, message_repository, };
-    let app = build_router(state.clone());
-    let public_app = build_public_router(state);
+    let app_private = build_router(state.clone());
+    let app_public = build_public_router(state);
     //let current_filter = tracing::metadata::LevelFilter::current();
     //print!("Current filter: {:?}", current_filter);
 
-    info!("Escuchando en http://{}", listener.local_addr()?);
+    info!("Escuchando en Servidor Private http://{}", listener_private.local_addr()?);
+    info!("Escuchando en Servidor Publico http://{}", listener_public.local_addr()?);
     //axum::serve(listener, app).await?;
 
-    let server_private = tokio::task::spawn(async move {
-        axum::serve(listener, app).await.expect("Error al iniciar servidor private");
+    let server_private_task = tokio::task::spawn(async move {
+        axum::serve(listener_private, app_private).await.expect("Error al iniciar servidor private");
     });
-    let server_public = tokio::task::spawn(async move {
-        axum::serve(listener, app).await.expect("Error al iniciar servidor private");
+    let server_public_task = tokio::task::spawn(async move {
+        axum::serve(listener_public, app_public).await.expect("Error al iniciar servidor private");
     });
+    let (private_result, public_result) = tokio::join!(server_private_task, server_public_task);
+    private_result?;
+    public_result?;
     Ok(())
 }
