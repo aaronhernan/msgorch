@@ -27,6 +27,10 @@ pub async fn spawn_app() -> TestApp {
 
         std::env::set_var("EVOLUTION_BASE_URL", "http://localhost");
         std::env::set_var("EVOLUTION_API_KEY", "test-api-key");
+        std::env::set_var("DATABASE_URL", "postgres://msgorchuser:local.Pass9@localhost:5432/msgorch_db");
+        std::env::set_var("REDIS_URL", "redis://127.0.0.1:6379");
+        std::env::set_var("REDIS_PREFIX", "msgorch:idempotency");
+        std::env::set_var("IDEMPOTENCY_TTL_SECS", "300");
     }
 
     let config = Config::from_env();
@@ -38,7 +42,7 @@ pub async fn spawn_app() -> TestApp {
     });
 
     // evitar race condition
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(1000)).await;
 
     TestApp {
         address: format!("http://127.0.0.1:{port}"),

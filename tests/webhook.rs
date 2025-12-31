@@ -44,7 +44,7 @@ async fn webhook_accepts_with_valid_token() {
 
     let response = reqwest::Client::new()
         .post(format!("{}/webhook", app.address))
-        .header("x-webhook-token", "secret")
+        .header("Authorization", "Bearer secret")
         .json(&payload) 
         .send()
         .await
