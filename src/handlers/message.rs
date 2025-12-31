@@ -1,17 +1,10 @@
-use std::env;
-
-use axum::{
-    Json, extract::State, http::StatusCode
-};
+use axum::{Json, extract::State, http::StatusCode};
+use chrono::DateTime;
 use tracing::error;
 
 use crate::{
-    app::AppState, 
-    models::{
-        api::api_envelope::ApiEnvelope,
-        api::api_message::ApiMessage, 
-        message::Message
-    },
+    app::AppState,
+    models::{api::api_envelope::ApiEnvelope, api::api_message::ApiMessage, message::Message},
 };
 
 fn map_to_domain(evelope: ApiEnvelope) -> Result<Message, serde_json::Error> {
@@ -28,26 +21,29 @@ fn map_to_domain(evelope: ApiEnvelope) -> Result<Message, serde_json::Error> {
         remote_jid_alt: None,
         text: api_message.text.clone(),
         from_me: true,
-        timestamp: api_message.timestamp.clone(),
+        origin_timestamp: DateTime::from_timestamp(api_message.timestamp.unwrap(), 0),
         created_at: chrono::Utc::now(),
     })
 }
 
 pub async fn message_handler(
     State(state): State<AppState>,
-    Json(payload): Json<ApiEnvelope>
+    Json(payload): Json<ApiEnvelope>,
 ) -> StatusCode {
-    let message = match map_to_domain(payload)
-    {
+    let message = match map_to_domain(payload) {
         Ok(msg) => msg,
         Err(err) => {
             error!("Error al mapear el mensaje: {}", err);
             return StatusCode::BAD_REQUEST;
         }
     };
+
     tracing::info!("Mensaje encolado: {:?}", message);
 
-    let result = state.evolution.send_message(&message.remote_jid, "Mensaje recibido").await;
+    let result = state
+        .evolution
+        .send_message(&message.remote_jid, "Mensaje recibido")
+        .await;
     match result {
         Ok(_) => StatusCode::OK,
         Err(err) => {

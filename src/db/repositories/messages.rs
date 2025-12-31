@@ -13,10 +13,11 @@ impl MessageRepository {
         Self { pool }
     }
 
-    pub async fn insert_incoming( &self, message: &Message, instance: &str ) 
-    //-> Result<i64, RepositoryError> 
-    -> Result<i64, sqlx::Error>
-    {
+    pub async fn insert_incoming(
+        &self,
+        message: &Message,
+        instance: &str,
+    ) -> Result<i64, sqlx::Error> {
         let record = sqlx::query!(
             r#"
             INSERT INTO messages (
@@ -26,7 +27,7 @@ impl MessageRepository {
                 remote_jid,
                 remote_jid_alt,
                 text,
-                timestamp
+                origin_timestamp
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING id
@@ -37,14 +38,13 @@ impl MessageRepository {
             message.remote_jid,
             message.remote_jid_alt,
             message.text,
-            message.timestamp
+            message.origin_timestamp
         )
         .fetch_one(&self.pool)
         .await?;
 
         Ok(record.id)
     }
-
 
     pub async fn get_conversation_history(
         &self,
@@ -62,7 +62,7 @@ impl MessageRepository {
                 remote_jid,
                 remote_jid_alt,
                 text,
-                timestamp,
+                origin_timestamp,
                 created_at
             FROM messages
             WHERE instance = $1
@@ -74,7 +74,7 @@ impl MessageRepository {
               AND remote_jid = $2
             ORDER BY created_at ASC
             LIMIT $3
-            "#
+            "#,
         )
         .bind(instance)
         .bind(remote_jid)

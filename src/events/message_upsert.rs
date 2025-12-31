@@ -1,11 +1,11 @@
+use crate::{
+    app::AppState, events::message_processor::process_message,
+    models::evolution::message_upsert::MessageUpsertData, models::message::Message,
+};
 use axum::http::StatusCode;
+use chrono::DateTime;
 use serde_json::Value;
 use tracing::{error, warn};
-use crate::{
-    app::AppState, events::message_processor::process_message, 
-    models::evolution::message_upsert::MessageUpsertData,
-    models::message::Message,
-};
 
 fn map_to_domain(parsed: MessageUpsertData, instance: &str) -> Message {
     Message {
@@ -16,7 +16,7 @@ fn map_to_domain(parsed: MessageUpsertData, instance: &str) -> Message {
         remote_jid_alt: parsed.key.remote_jid_alt.clone(),
         text: parsed.message.conversation.clone(),
         from_me: parsed.key.from_me,
-        timestamp: parsed.message_timestamp,
+        origin_timestamp: DateTime::from_timestamp(parsed.message_timestamp.unwrap(), 0),
         created_at: chrono::Utc::now(),
     }
 }
@@ -40,12 +40,16 @@ pub async fn handle(state: &AppState, data: Value, instance: &str) -> StatusCode
 
     let message = map_to_domain(parsed, instance);
 
-    if !validate_message(&message){
+    if !validate_message(&message) {
         warn!(transporter_message_id = %message.transporter_message_id, "Mensaje con datos invalidos");
         return StatusCode::OK;
     }
 
-    match state.idempotency.check_and_mark(&message.transporter_message_id).await {
+    match state
+        .idempotency
+        .check_and_mark(&message.transporter_message_id)
+        .await
+    {
         Ok(false) => {
             warn!(transporter_message_id = %message.transporter_message_id, "Mensaje duplicado ignorado");
             return StatusCode::OK;

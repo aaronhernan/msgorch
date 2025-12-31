@@ -6,8 +6,8 @@ CREATE TABLE messages (
     remote_jid TEXT NOT NULL,
     remote_jid_alt TEXT,
     text TEXT NOT NULL,
-    timestamp BIGINT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    origin_timestamp TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_evolution_message UNIQUE (instance, transporter_message_id)
 );
 

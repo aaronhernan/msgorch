@@ -24,7 +24,7 @@ pub struct Message {
     pub text: String,
 
     /// Timestamp original del mensaje (si existe)
-    pub timestamp: Option<i64>,
+    pub origin_timestamp: Option<DateTime<Utc>>,
 
     /// Cuándo lo recibimos / persistimos
     pub created_at: DateTime<Utc>,
