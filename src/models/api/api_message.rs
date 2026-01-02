@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -9,5 +10,5 @@ pub struct ApiMessage {
     /// JID del destinatario
     pub destination_jid: String,
     /// Timestamp original del mensaje (si existe)
-    pub timestamp: Option<i64>,
+    pub timestamp: Option<DateTime<Utc>>,
 }

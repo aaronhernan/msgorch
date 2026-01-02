@@ -1,5 +1,4 @@
 use axum::{Json, extract::State, http::StatusCode};
-use chrono::DateTime;
 use tracing::error;
 
 use crate::{
@@ -21,7 +20,7 @@ fn map_to_domain(evelope: ApiEnvelope) -> Result<Message, serde_json::Error> {
         remote_jid_alt: None,
         text: api_message.text.clone(),
         from_me: true,
-        origin_timestamp: DateTime::from_timestamp(api_message.timestamp.unwrap(), 0),
+        origin_timestamp: api_message.timestamp,
         created_at: chrono::Utc::now(),
     })
 }
@@ -42,7 +41,7 @@ pub async fn message_handler(
 
     let result = state
         .evolution
-        .send_message(&message.remote_jid, "Mensaje recibido")
+        .send_message(&message.remote_jid, &message.text)
         .await;
     match result {
         Ok(_) => StatusCode::OK,

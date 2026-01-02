@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::prelude::*;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]

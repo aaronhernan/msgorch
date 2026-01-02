@@ -1,0 +1,37 @@
+{
+    "event": "send.message",
+    "instance": "servicewa",
+    "data": {
+        "key": {
+            "remoteJid": "5216622001169@s.whatsapp.net",
+            "fromMe": true,
+            "id": "3EB04CCC5A719363FF6FF5"
+        },
+        "pushName": "Você",
+        "status": "PENDING",
+        "message": {
+            "conversation": "Feliz ano"
+        },
+        "contextInfo": {
+            "mentionedJid": [],
+            "groupMentions": [],
+            "ephemeralSettingTimestamp": {
+                "low": 1767083669,
+                "high": 0,
+                "unsigned": false
+            },
+            "disappearingMode": {
+                "initiator": 0
+            }
+        },
+        "messageType": "conversation",
+        "messageTimestamp": 1767256469,
+        "instanceId": "484f2677-cb3f-46fa-b67f-177a9bbb51fd",
+        "source": "web"
+    },
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2026-01-01T05:34:29.853Z",
+    "sender": "5216321123877@s.whatsapp.net",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}

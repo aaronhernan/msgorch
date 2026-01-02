@@ -11,29 +11,29 @@ use crate::{
     models::webhook::WebhookEnvelope
 };
 
-// pub async fn webhook_handler(
-//     State(state): State<AppState>,
-//     Json(payload): Json<WebhookEnvelope>
-// ) -> StatusCode {
-//     dispatcher::dispatch( payload, &state).await
-// }
-
 pub async fn webhook_handler(
-    State(_state): State<AppState>,
-    body: Bytes,
+    State(state): State<AppState>,
+    Json(payload): Json<WebhookEnvelope>
 ) -> StatusCode {
-    
-    match std::str::from_utf8(&body) {
-        Ok(text) => {
-            tracing::info!("Webhook RAW body:\n{}", text);
-        }
-        Err(err) => {
-            tracing::error!("Body no es UTF-8 válido: {}", err);
-        }
-    }
-
-    StatusCode::OK
+    dispatcher::dispatch( payload, &state).await
 }
+
+// pub async fn webhook_handler(
+//     State(_state): State<AppState>,
+//     body: Bytes,
+// ) -> StatusCode {
+    
+//     match std::str::from_utf8(&body) {
+//         Ok(text) => {
+//             tracing::info!("Webhook RAW body:\n{}", text);
+//         }
+//         Err(err) => {
+//             tracing::error!("Body no es UTF-8 válido: {}", err);
+//         }
+//     }
+
+//     StatusCode::OK
+// }
 
 /*
 pub async fn handler_anterior_acoplado(

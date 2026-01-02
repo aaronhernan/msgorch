@@ -1,0 +1,31 @@
+{
+    "event": "connection.update",
+    "instance": "servicewa",
+    "data": {
+        "instance": "servicewa",
+        "state": "connecting",
+        "statusReason": 200
+    },
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2026-01-01T05:04:45.351Z",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}
+
+{
+    "event": "connection.update",
+    "instance": "servicewa",
+    "data": {
+        "instance": "servicewa",
+        "wuid": "5216321123877@s.whatsapp.net",
+        "profileName": "Service",
+        "profilePictureUrl": null,
+        "state": "open",
+        "statusReason": 200
+    },
+    "destination": "http://host.containers.internal:3001/webhook",
+    "date_time": "2026-01-01T05:04:46.134Z",
+    "sender": "5216321123877@s.whatsapp.net",
+    "server_url": "http://localhost:8080",
+    "apikey": "3584C49AF1E7-40C3-85E6-0C4F867B5326"
+}

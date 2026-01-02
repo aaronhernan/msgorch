@@ -17,7 +17,7 @@ pub async fn handle(_state: &AppState, data: Value) -> StatusCode {
     };
 
     info!(
-        transporter_id = %parsed.key_id,
+        transporter_message_id = %parsed.key_id,
         jid = %parsed.remote_jid,
         status = %parsed.status.unwrap_or("<no value>".to_string()),
         "Mensaje actualizado"
